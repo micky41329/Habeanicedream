@@ -65,7 +65,9 @@ button{cursor:pointer}
   box-shadow:0 8px 25px rgba(81,103,146,.07);transition:.2s
 }
 .dream:hover{transform:translateY(-3px)}
-.dream-date{font-size:12px;color:#8492ad;padding:4px 3px 8px}
+.dream-date{font-size:12px;color:#8492ad;padding:4px 3px 8px;display:flex;justify-content:space-between;align-items:center}
+.delete-btn{border:0;background:#f8e7ea;color:#a47784;border-radius:12px;padding:4px 8px;font-size:11px}
+.delete-btn:hover{background:#f3d9df}
 .dream-img{height:125px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:54px;background:linear-gradient(135deg,#dce7fa,#f2ecfb)}
 .dream:nth-child(2) .dream-img{background:linear-gradient(135deg,#f9e9d0,#dceafb)}
 .dream:nth-child(3) .dream-img{background:linear-gradient(135deg,#d9e8f7,#e9e4f9)}
@@ -160,16 +162,8 @@ input:focus,textarea:focus{border-color:#a8bce0;box-shadow:0 0 0 3px #edf2fb}
 </div>
 
 <script>
-const seedDreams=[
- {date:"2026-09-07",title:"下雨的房間",body:"我夢到自己在一個很大的房間裡，外面一直下雨，我找不到出口……",mood:"奇怪",people:"家"},
- {date:"2026-09-05",title:"我在飛",body:"我飛在很高的天空上，下面是雲，風很溫柔，我覺得好自由。",mood:"開心",people:"天空"},
- {date:"2026-09-02",title:"回到那個地方",body:"我夢到以前的學校，但一切都不太一樣，好像熟悉又陌生。",mood:"懷念",people:"學校"},
- {date:"2026-08-31",title:"一隻貓",body:"我夢到有一隻很可愛的貓一直跟著我，後來牠突然不見了。",mood:"想念",people:"貓"}
-];
-const seedFragments=[
- ["🪟","一扇很大的窗","09/07"],["🌧️","下雨","09/07"],["🚪","打不開的門","09/05"],
- ["✈️","飛行","09/02"],["🐈","一隻貓","08/31"]
-];
+const seedDreams=[];
+const seedFragments=[];
 let dreams=JSON.parse(localStorage.getItem("dreamyDreams")||"null")||seedDreams;
 let fragments=JSON.parse(localStorage.getItem("dreamyFragments")||"null")||seedFragments;
 function save(){localStorage.setItem("dreamyDreams",JSON.stringify(dreams));localStorage.setItem("dreamyFragments",JSON.stringify(fragments))}
@@ -178,7 +172,7 @@ function iconFor(d){return d.title.includes("貓")?"🐈":d.title.includes("飛"
 function render(){
  document.getElementById("count").textContent= `${dreams.length} 個夢`;
  const g=document.getElementById("dreamGrid");
- g.innerHTML=dreams.slice(0,4).map((d,i)=>`<article class="dream"><div class="dream-date">${d.date.replaceAll("-"," / ")}</div><div class="dream-img">${iconFor(d)}</div><h3>${esc(d.title)}</h3><p>${esc(d.body)}</p><div class="tags"><span class="tag ${i%3===0?"pink":i%3===1?"yellow":"blue"}">${esc(d.mood||"未記錄")}</span><span class="tag">${esc(d.people||"夢境")}</span></div></article>`).join("");
+ g.innerHTML=dreams.slice(0,4).map((d,i)=>`<article class="dream"><div class="dream-date">${d.date.replaceAll("-"," / ")} <button class="delete-btn" onclick="deleteDream(${dreams.indexOf(d)})">刪除</button></div><div class="dream-img">${iconFor(d)}</div><h3>${esc(d.title)}</h3><p>${esc(d.body)}</p><div class="tags"><span class="tag ${i%3===0?"pink":i%3===1?"yellow":"blue"}">${esc(d.mood||"未記錄")}</span><span class="tag">${esc(d.people||"夢境")}</span></div></article>`).join("");
  document.getElementById("fragmentGrid").innerHTML=fragments.map(f=>`<div class="fragment"><div class="fi">${esc(f[0])}</div><div>${esc(f[1])}</div><small>${esc(f[2])}</small></div>`).join("")+`<button class="fragment" style="border:0;color:#718fc5;font-weight:700" onclick="openModal(true)"><div class="fi">＋</div><div>新增碎片</div></button>`;
 }
 function openModal(fragment=false){
