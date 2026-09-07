@@ -66,8 +66,15 @@ button{cursor:pointer}
 }
 .dream:hover{transform:translateY(-3px)}
 .dream-date{font-size:12px;color:#8492ad;padding:4px 3px 8px;display:flex;justify-content:space-between;align-items:center}
-.delete-btn{border:0;background:#f8e7ea;color:#a47784;border-radius:12px;padding:4px 8px;font-size:11px}
-.delete-btn:hover{background:#f3d9df}
+.dream-actions{display:flex;gap:5px}
+.edit-btn,.delete-btn{border:0;border-radius:12px;padding:4px 8px;font-size:11px}
+.edit-btn{background:#e7eefb;color:#657fae}.edit-btn:hover{background:#dce7fa}
+.delete-btn{background:#f8e7ea;color:#a47784}.delete-btn:hover{background:#f3d9df}
+.section-tools{display:flex;align-items:center;gap:7px}
+.date-search{width:145px;border:1px solid #dce4f1;background:rgba(255,255,255,.8);border-radius:15px;padding:7px 10px;color:#647492;font-size:12px}
+.clear-search{border:0;background:#edf1f7;color:#74829b;border-radius:15px;padding:7px 10px;font-size:12px}
+.search-hint{font-size:12px;color:#7c8ba5;margin:-3px 0 10px}
+@media(max-width:700px){.section-head{align-items:flex-start;gap:10px;flex-direction:column}.section-tools{width:100%;flex-wrap:wrap}.date-search{flex:1;min-width:130px}}
 .dream-img{height:125px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:54px;background:linear-gradient(135deg,#dce7fa,#f2ecfb)}
 .dream:nth-child(2) .dream-img{background:linear-gradient(135deg,#f9e9d0,#dceafb)}
 .dream:nth-child(3) .dream-img{background:linear-gradient(135deg,#d9e8f7,#e9e4f9)}
@@ -132,7 +139,15 @@ input:focus,textarea:focus{border-color:#a8bce0;box-shadow:0 0 0 3px #edf2fb}
     </section>
 
     <section class="section" id="dreamSection">
-      <div class="section-head"><h2>⭐ 最近的夢</h2><button class="more" onclick="showAll()">查看全部 →</button></div>
+      <div class="section-head">
+  <h2>⭐ 我的夢境</h2>
+  <div class="section-tools">
+    <input id="dateSearch" class="date-search" type="date" aria-label="依日期搜尋">
+    <button class="clear-search" id="clearSearch">清除日期</button>
+    <button class="more" onclick="showAll()">查看全部 →</button>
+  </div>
+</div>
+      <div id="searchHint" class="search-hint"></div>
       <div class="grid" id="dreamGrid"></div>
     </section>
 
@@ -151,12 +166,12 @@ input:focus,textarea:focus{border-color:#a8bce0;box-shadow:0 0 0 3px #edf2fb}
     <form id="dreamForm">
       <div class="form-grid">
         <div class="field"><label>日期</label><input id="date" type="date" required></div>
-        <div class="field"><label>夢的標題</label><input id="title" placeholder="例如：下雨的房間" required></div>
+        <div class="field"><label>夢的標題</label><input id="title" placeholder="輸入夢的標題" required></div>
         <div class="field full"><label>我夢見……</label><textarea id="body" placeholder="醒來後還記得什麼，就先寫什麼。不需要完整。"></textarea></div>
-        <div class="field"><label>醒來時的感覺</label><input id="mood" placeholder="例如：奇怪、平靜、想念"></div>
-        <div class="field"><label>夢裡出現的人／地方</label><input id="people" placeholder="例如：朋友、家、學校"></div>
+        <div class="field"><label>醒來時的感覺</label><input id="mood" placeholder="記下醒來時的感覺"></div>
+        <div class="field"><label>夢裡出現的人／地方</label><input id="people" placeholder="記下夢裡的人或地方"></div>
       </div>
-      <div class="actions"><button type="button" class="secondary" onclick="closeModal()">先不要</button><button class="primary" type="submit">收藏這個夢 ✦</button></div>
+      <div class="actions"><button type="button" class="secondary" onclick="closeModal()">先不要</button><button class="primary" id="saveBtn" type="submit">收藏這個夢 ✦</button></div>
     </form>
   </div>
 </div>
@@ -164,28 +179,143 @@ input:focus,textarea:focus{border-color:#a8bce0;box-shadow:0 0 0 3px #edf2fb}
 <script>
 const seedDreams=[];
 const seedFragments=[];
-let dreams=JSON.parse(localStorage.getItem("dreamyDreams")||"null")||seedDreams;
-let fragments=JSON.parse(localStorage.getItem("dreamyFragments")||"null")||seedFragments;
-function save(){localStorage.setItem("dreamyDreams",JSON.stringify(dreams));localStorage.setItem("dreamyFragments",JSON.stringify(fragments))}
-function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-function iconFor(d){return d.title.includes("貓")?"🐈":d.title.includes("飛")?"☁️":d.title.includes("雨")?"🌧️":d.title.includes("門")?"🚪":"🌙"}
-function render(){
+let dreams=JSON.parse(localStorage.getItem("dreamyDreams")||"null")||[];
+let fragments=JSON.parse(localStorage.getItem("dreamyFragments")||"null")||[];
+let editingIndex=null;
+let searchDate="";
+
+function save(){
+  localStorage.setItem("dreamyDreams",JSON.stringify(dreams));
+  localStorage.setItem("dreamyFragments",JSON.stringify(fragments));
+}
+function esc(s){
+  return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+function iconFor(d){
+  return d.title.includes("貓")?"🐈":d.title.includes("飛")?"☁️":d.title.includes("雨")?"🌧️":d.title.includes("門")?"🚪":"🌙";
+}
+function formatDate(s){ return s ? s.replaceAll("-"," / ") : "未設定"; }
+
+function render(list=dreams){
  document.getElementById("count").textContent= `${dreams.length} 個夢`;
  const g=document.getElementById("dreamGrid");
- g.innerHTML=dreams.slice(0,4).map((d,i)=>`<article class="dream"><div class="dream-date">${d.date.replaceAll("-"," / ")} <button class="delete-btn" onclick="deleteDream(${dreams.indexOf(d)})">刪除</button></div><div class="dream-img">${iconFor(d)}</div><h3>${esc(d.title)}</h3><p>${esc(d.body)}</p><div class="tags"><span class="tag ${i%3===0?"pink":i%3===1?"yellow":"blue"}">${esc(d.mood||"未記錄")}</span><span class="tag">${esc(d.people||"夢境")}</span></div></article>`).join("");
+ g.innerHTML = list.length
+   ? list.slice(0,50).map((d,i)=>`<article class="dream">
+      <div class="dream-date"><span>${d.date.replaceAll("-"," / ")}</span><div class="card-actions">
+        <button class="edit-btn" onclick="editDream(${dreams.indexOf(d)})">編輯</button>
+        <button class="delete-btn" onclick="deleteDream(${dreams.indexOf(d)})">刪除</button>
+      </div></div>
+      <div class="dream-img">${iconFor(d)}</div><h3>${esc(d.title)}</h3><p>${esc(d.body)}</p>
+      <div class="tags"><span class="tag ${i%3===0?"pink":i%3===1?"yellow":"blue"}">${esc(d.mood||"未記錄")}</span><span class="tag">${esc(d.people||"夢境")}</span></div>
+    </article>`).join("")
+   : `<div class="empty" style="grid-column:1/-1">🌙 還沒有符合條件的夢境<br><small>試試其他日期或關鍵字。</small></div>`;
  document.getElementById("fragmentGrid").innerHTML=fragments.map(f=>`<div class="fragment"><div class="fi">${esc(f[0])}</div><div>${esc(f[1])}</div><small>${esc(f[2])}</small></div>`).join("")+`<button class="fragment" style="border:0;color:#718fc5;font-weight:700" onclick="openModal(true)"><div class="fi">＋</div><div>新增碎片</div></button>`;
 }
-function openModal(fragment=false){
- if(fragment){alert("之後可以把「夢的碎片」做成獨立輸入視窗。現在先使用完整夢境記錄。");return}
+function searchDreams(){
+ const date=document.getElementById("dateSearch").value;
+ const key=document.getElementById("keywordSearch").value.trim().toLowerCase();
+ const list=dreams.filter(d=>{
+   const dateOK=!date || d.date===date;
+   const text=(d.title+" "+d.body+" "+d.mood+" "+d.people).toLowerCase();
+   return dateOK && (!key || text.includes(key));
+ });
+ document.getElementById("searchResult").textContent =
+   (date||key) ? `找到 ${list.length} 個夢境` : "";
+ render(list);
+}
+function clearSearch(){
+ document.getElementById("dateSearch").value="";
+ document.getElementById("keywordSearch").value="";
+ document.getElementById("searchResult").textContent="";
+ render(dreams);
+}
+function openModal(fragment=false, editIndex=null){
+ if(fragment){
+   // Keep this action silent for now; the fragment feature will be expanded later.
+   return;
+ }
+ document.getElementById("modalTitle").textContent=editIndex===null?"🌙 記下一場夢":"✏️ 編輯夢境";
+ document.getElementById("saveBtn").textContent=editIndex===null?"收藏這個夢 ✦":"儲存修改 ✦";
+ document.getElementById("dreamForm").dataset.editIndex=editIndex===null?"":String(editIndex);
  document.getElementById("modalBg").classList.add("show");
- document.getElementById("date").value=new Date().toISOString().slice(0,10);
+ if(editIndex!==null){
+   const d=dreams[editIndex];
+   document.getElementById("date").value=d.date;
+   document.getElementById("title").value=d.title;
+   document.getElementById("body").value=d.body;
+   document.getElementById("mood").value=d.mood||"";
+   document.getElementById("people").value=d.people||"";
+ }else{
+   document.getElementById("date").value=new Date().toISOString().slice(0,10);
+   document.getElementById("title").value="";
+   document.getElementById("body").value="";
+   document.getElementById("mood").value="";
+   document.getElementById("people").value="";
+ }
  setTimeout(()=>document.getElementById("title").focus(),50);
 }
-function closeModal(){document.getElementById("modalBg").classList.remove("show")}
+function editDream(index){openModal(false,index)}
+function deleteDream(index){
+ if(index<0 || index>=dreams.length) return;
+ if(confirm("確定要刪除這場夢嗎？刪除後無法復原。")){
+   dreams.splice(index,1);
+   save();
+   searchDreams();
+ }
+}
 document.getElementById("dreamForm").addEventListener("submit",e=>{
  e.preventDefault();
+ const editIndex=e.target.dataset.editIndex;
  const d={date:date.value,title:title.value,body:body.value,mood:mood.value,people:people.value};
- dreams.unshift(d);save();render();closeModal();e.target.reset();
+ if(editIndex!==""){dreams[Number(editIndex)]=d}else{dreams.unshift(d)}
+ save(); render(); closeModal(); e.target.reset(); e.target.dataset.editIndex="";
+});
+function goHome(){window.scrollTo({top:0,behavior:"smooth"})}
+function showAll(){clearSearch(); document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"})}
+function showStats(){document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"})}
+function showFragments(){document.getElementById("fragmentSection").scrollIntoView({behavior:"smooth"})}
+render();
+  }
+}
+function closeModal(){document.getElementById("modalBg").classList.remove("show"); editingIndex=null;}
+function goHome(){window.scrollTo({top:0,behavior:"smooth"});}
+function showAll(){
+  searchDate="";
+  document.getElementById("dateSearch").value="";
+  document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"});
+  render();
+}
+function showStats(){document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"});}
+function showFragments(){document.getElementById("fragmentSection").scrollIntoView({behavior:"smooth"});}
+
+document.getElementById("dreamForm").addEventListener("submit",e=>{
+  e.preventDefault();
+  const d={
+    date:document.getElementById("date").value,
+    title:document.getElementById("title").value.trim(),
+    body:document.getElementById("body").value.trim(),
+    mood:document.getElementById("mood").value.trim(),
+    people:document.getElementById("people").value.trim()
+  };
+  if(editingIndex===null) dreams.unshift(d);
+  else dreams[editingIndex]=d;
+  save(); render(); closeModal(); e.target.reset();
+});
+document.getElementById("modalBg").addEventListener("click",e=>{
+  if(e.target.id==="modalBg") closeModal();
+});
+document.getElementById("dateSearch").addEventListener("change",e=>{
+  searchDate=e.target.value;
+  render();
+  document.getElementById("dreamSection").scrollIntoView({behavior:"smooth",block:"start"});
+});
+document.getElementById("clearSearch").addEventListener("click",()=>{
+  searchDate="";
+  document.getElementById("dateSearch").value="";
+  render();
+});
+
+render();closeModal();e.target.reset();
 });
 document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeModal()});
 function goHome(){document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"})}
