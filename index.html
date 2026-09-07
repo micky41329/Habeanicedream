@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dreamy Journal｜我的夢境簿</title>
+<style>
+:root{
+  --ink:#405274; --muted:#8190ad; --blue:#718fc5; --blue2:#9fb8e5;
+  --cream:#fffaf0; --card:rgba(255,255,255,.88); --line:#e2e8f3;
+  --lav:#eeeafd; --pink:#f8dfe4; --yellow:#ffe9b8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:var(--ink);
+  background:linear-gradient(135deg,#dce8fb 0%,#eef0fc 48%,#fff8f1 100%);
+  min-height:100vh;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:245px;padding:34px 20px;position:fixed;inset:0 auto 0 0;
+  background:linear-gradient(180deg,#7189bc,#839bc9 58%,#a9b8df);
+  color:white;overflow:hidden;
+}
+.brand{font-size:28px;line-height:1.15;font-weight:700;letter-spacing:.5px;margin:0 14px 8px}
+.brand-sub{font-size:13px;opacity:.9;line-height:1.7;margin:0 14px 30px}
+.nav{display:grid;gap:9px}
+.nav button{
+  border:0;background:transparent;color:white;text-align:left;padding:13px 15px;border-radius:22px;
+  font-size:15px;transition:.2s;opacity:.92
+}
+.nav button:hover,.nav button.active{background:rgba(255,255,255,.23);opacity:1}
+.side-stars{position:absolute;bottom:35px;left:30px;font-size:20px;line-height:2.5;opacity:.8}
+.main{margin-left:245px;width:calc(100% - 245px);padding:28px 34px 55px}
+.top{
+  max-width:1180px;margin:auto;display:flex;justify-content:flex-end;align-items:center;height:42px
+}
+.user{font-size:14px;background:rgba(255,255,255,.55);padding:8px 14px;border-radius:20px}
+.hero{
+  max-width:1180px;margin:0 auto 24px;min-height:250px;border-radius:32px;padding:42px 55px;
+  position:relative;overflow:hidden;background:linear-gradient(125deg,#b8caeb,#e4e8fb 55%,#fff7ee);
+  box-shadow:0 14px 40px rgba(81,103,146,.12)
+}
+.hero:before{content:"☁️  ✦  ✨";position:absolute;right:35px;top:25px;font-size:25px;opacity:.7}
+.moon{font-size:88px;position:absolute;left:30px;bottom:-17px;filter:drop-shadow(0 7px 8px rgba(70,90,130,.12))}
+.hero-copy{text-align:center;position:relative;z-index:2}
+.hero h1{font-size:38px;margin:5px 0 8px;letter-spacing:2px}
+.hero p{margin:0 0 21px;color:#657494}
+.primary{
+  border:0;border-radius:28px;padding:14px 27px;background:#718fc5;color:white;font-weight:700;
+  box-shadow:0 8px 18px rgba(91,119,173,.2)
+}
+.primary:hover{transform:translateY(-1px)}
+.stats{max-width:1180px;margin:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat{background:var(--card);border:1px solid rgba(255,255,255,.8);border-radius:22px;padding:18px 20px;box-shadow:0 8px 25px rgba(81,103,146,.08)}
+.stat-icon{font-size:25px}.stat-label{font-size:13px;color:var(--muted);margin-top:4px}.stat-value{font-size:19px;font-weight:700;margin-top:5px}
+.section{max-width:1180px;margin:30px auto 0}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+.section h2{font-size:21px;margin:0}.more{font-size:13px;color:#718fc5;border:0;background:none}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.dream{
+  background:var(--card);border:1px solid rgba(255,255,255,.8);border-radius:22px;padding:12px;
+  box-shadow:0 8px 25px rgba(81,103,146,.07);transition:.2s
+}
+.dream:hover{transform:translateY(-3px)}
+.dream-date{font-size:12px;color:#8492ad;padding:4px 3px 8px}
+.dream-img{height:125px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:54px;background:linear-gradient(135deg,#dce7fa,#f2ecfb)}
+.dream:nth-child(2) .dream-img{background:linear-gradient(135deg,#f9e9d0,#dceafb)}
+.dream:nth-child(3) .dream-img{background:linear-gradient(135deg,#d9e8f7,#e9e4f9)}
+.dream:nth-child(4) .dream-img{background:linear-gradient(135deg,#f5e4df,#e5e9f8)}
+.dream h3{font-size:17px;margin:11px 3px 6px}.dream p{font-size:13px;line-height:1.7;color:#71809b;margin:0 3px 10px;height:44px;overflow:hidden}
+.tags{display:flex;gap:6px;flex-wrap:wrap}.tag{font-size:11px;padding:5px 10px;border-radius:14px;background:#edf1f8}.tag.pink{background:#f9e4e8}.tag.yellow{background:#fff0c9}.tag.blue{background:#e2ecfc}
+.fragments{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.fragment{background:rgba(255,255,255,.82);border:1px solid white;border-radius:18px;padding:16px;text-align:center;min-height:96px}
+.fragment .fi{font-size:29px}.fragment div:last-child{font-size:12px;margin-top:7px}.fragment small{color:#9aa5b9}
+.quote{text-align:center;color:#8390aa;margin:36px auto 0;font-size:14px}
+.modal-bg{position:fixed;inset:0;background:rgba(62,77,109,.28);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal-bg.show{display:flex}
+.modal{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fffdf9;border-radius:28px;padding:27px;box-shadow:0 25px 80px rgba(40,55,90,.22)}
+.modal h2{margin:0 0 18px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field.full{grid-column:1/-1}
+label{display:block;font-size:13px;color:#6f7d98;margin-bottom:7px}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:15px;padding:11px 13px;outline:none;background:#fbfcff;color:var(--ink)}
+textarea{min-height:150px;resize:vertical;line-height:1.7}
+input:focus,textarea:focus{border-color:#a8bce0;box-shadow:0 0 0 3px #edf2fb}
+.actions{display:flex;justify-content:flex-end;gap:9px;margin-top:18px}.secondary{border:1px solid #d8dfeb;background:white;color:#6c7890;border-radius:20px;padding:10px 18px}
+.empty{padding:40px;text-align:center;color:#8a97ae;background:rgba(255,255,255,.65);border-radius:22px}
+@media(max-width:900px){
+ .sidebar{width:78px;padding:25px 10px}.brand{font-size:0;text-align:center}.brand:after{content:"🌙";font-size:30px}.brand-sub,.nav button span,.side-stars{display:none}
+ .nav button{text-align:center;font-size:22px;padding:13px 8px}.main{margin-left:78px;width:calc(100% - 78px);padding:18px}
+ .stats,.grid{grid-template-columns:repeat(2,1fr)}.fragments{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:560px){
+ .main{padding:10px}.hero{padding:35px 18px;min-height:235px}.hero h1{font-size:28px}.moon{font-size:62px;left:5px}.stats,.grid{grid-template-columns:1fr}.fragments{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">🌙 Dreamy<br>Journal</div>
+    <p class="brand-sub">收藏每一個夢，<br>也收藏每一個你。</p>
+    <nav class="nav">
+      <button class="active" onclick="goHome()">🏠 <span>首頁</span></button>
+      <button onclick="showAll()">📖 <span>我的夢境</span></button>
+      <button onclick="openModal()">＋ <span>新增夢境</span></button>
+      <button onclick="showStats()">📊 <span>夢境統計</span></button>
+      <button onclick="showFragments()">⭐ <span>夢的碎片</span></button>
+    </nav>
+    <div class="side-stars">✦　⋆<br>　☁️　✧<br>✦　　⋆</div>
+  </aside>
+
+  <main class="main">
+    <div class="top"><div class="user">☁️ 這是你的私人夢境簿</div></div>
+    <section class="hero">
+      <div class="moon">🌙</div>
+      <div class="hero-copy">
+        <h1>昨晚，你夢見了什麼？</h1>
+        <p>把那些模糊的畫面，留在這裡吧。</p>
+        <button class="primary" onclick="openModal()">＋ 記下一場夢</button>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><div class="stat-icon">🌙</div><div class="stat-label">已經收藏</div><div class="stat-value" id="count">4 個夢</div></div>
+      <div class="stat"><div class="stat-icon">⭐</div><div class="stat-label">最常出現的場景</div><div class="stat-value">家 🏠</div></div>
+      <div class="stat"><div class="stat-icon">☁️</div><div class="stat-label">最常出現的情緒</div><div class="stat-value">平靜</div></div>
+      <div class="stat"><div class="stat-icon">♡</div><div class="stat-label">最常出現的人</div><div class="stat-value">朋友</div></div>
+    </section>
+
+    <section class="section" id="dreamSection">
+      <div class="section-head"><h2>⭐ 最近的夢</h2><button class="more" onclick="showAll()">查看全部 →</button></div>
+      <div class="grid" id="dreamGrid"></div>
+    </section>
+
+    <section class="section" id="fragmentSection">
+      <div class="section-head"><h2>☁️ 夢的碎片</h2><button class="more" onclick="openModal(true)">＋ 新增碎片</button></div>
+      <div class="fragments" id="fragmentGrid"></div>
+    </section>
+
+    <div class="quote">🌙「夢，是另一個真實的自己。」</div>
+  </main>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">🌙 記下一場夢</h2>
+    <form id="dreamForm">
+      <div class="form-grid">
+        <div class="field"><label>日期</label><input id="date" type="date" required></div>
+        <div class="field"><label>夢的標題</label><input id="title" placeholder="例如：下雨的房間" required></div>
+        <div class="field full"><label>我夢見……</label><textarea id="body" placeholder="醒來後還記得什麼，就先寫什麼。不需要完整。"></textarea></div>
+        <div class="field"><label>醒來時的感覺</label><input id="mood" placeholder="例如：奇怪、平靜、想念"></div>
+        <div class="field"><label>夢裡出現的人／地方</label><input id="people" placeholder="例如：朋友、家、學校"></div>
+      </div>
+      <div class="actions"><button type="button" class="secondary" onclick="closeModal()">先不要</button><button class="primary" type="submit">收藏這個夢 ✦</button></div>
+    </form>
+  </div>
+</div>
+
+<script>
+const seedDreams=[
+ {date:"2026-09-07",title:"下雨的房間",body:"我夢到自己在一個很大的房間裡，外面一直下雨，我找不到出口……",mood:"奇怪",people:"家"},
+ {date:"2026-09-05",title:"我在飛",body:"我飛在很高的天空上，下面是雲，風很溫柔，我覺得好自由。",mood:"開心",people:"天空"},
+ {date:"2026-09-02",title:"回到那個地方",body:"我夢到以前的學校，但一切都不太一樣，好像熟悉又陌生。",mood:"懷念",people:"學校"},
+ {date:"2026-08-31",title:"一隻貓",body:"我夢到有一隻很可愛的貓一直跟著我，後來牠突然不見了。",mood:"想念",people:"貓"}
+];
+const seedFragments=[
+ ["🪟","一扇很大的窗","09/07"],["🌧️","下雨","09/07"],["🚪","打不開的門","09/05"],
+ ["✈️","飛行","09/02"],["🐈","一隻貓","08/31"]
+];
+let dreams=JSON.parse(localStorage.getItem("dreamyDreams")||"null")||seedDreams;
+let fragments=JSON.parse(localStorage.getItem("dreamyFragments")||"null")||seedFragments;
+function save(){localStorage.setItem("dreamyDreams",JSON.stringify(dreams));localStorage.setItem("dreamyFragments",JSON.stringify(fragments))}
+function esc(s){return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function iconFor(d){return d.title.includes("貓")?"🐈":d.title.includes("飛")?"☁️":d.title.includes("雨")?"🌧️":d.title.includes("門")?"🚪":"🌙"}
+function render(){
+ document.getElementById("count").textContent= `${dreams.length} 個夢`;
+ const g=document.getElementById("dreamGrid");
+ g.innerHTML=dreams.slice(0,4).map((d,i)=>`<article class="dream"><div class="dream-date">${d.date.replaceAll("-"," / ")}</div><div class="dream-img">${iconFor(d)}</div><h3>${esc(d.title)}</h3><p>${esc(d.body)}</p><div class="tags"><span class="tag ${i%3===0?"pink":i%3===1?"yellow":"blue"}">${esc(d.mood||"未記錄")}</span><span class="tag">${esc(d.people||"夢境")}</span></div></article>`).join("");
+ document.getElementById("fragmentGrid").innerHTML=fragments.map(f=>`<div class="fragment"><div class="fi">${esc(f[0])}</div><div>${esc(f[1])}</div><small>${esc(f[2])}</small></div>`).join("")+`<button class="fragment" style="border:0;color:#718fc5;font-weight:700" onclick="openModal(true)"><div class="fi">＋</div><div>新增碎片</div></button>`;
+}
+function openModal(fragment=false){
+ if(fragment){alert("之後可以把「夢的碎片」做成獨立輸入視窗。現在先使用完整夢境記錄。");return}
+ document.getElementById("modalBg").classList.add("show");
+ document.getElementById("date").value=new Date().toISOString().slice(0,10);
+ setTimeout(()=>document.getElementById("title").focus(),50);
+}
+function closeModal(){document.getElementById("modalBg").classList.remove("show")}
+document.getElementById("dreamForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const d={date:date.value,title:title.value,body:body.value,mood:mood.value,people:people.value};
+ dreams.unshift(d);save();render();closeModal();e.target.reset();
+});
+document.getElementById("modalBg").addEventListener("click",e=>{if(e.target.id==="modalBg")closeModal()});
+function goHome(){document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"})}
+function showAll(){document.getElementById("dreamSection").scrollIntoView({behavior:"smooth"});alert("目前首頁先展示最近 4 個夢。下一版可以做成完整的搜尋／月份分類頁。")}
+function showStats(){alert("統計頁可以進一步加入：最常出現的人、地點、情緒、夢境關鍵字與月份趨勢。")}
+function showFragments(){document.getElementById("fragmentSection").scrollIntoView({behavior:"smooth"})}
+render();
+</script>
+</body>
+</html>
